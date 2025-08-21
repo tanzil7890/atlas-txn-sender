@@ -34,6 +34,7 @@ tower = { version = "0.4.13", features = ["full"] }
 anyhow = "1.0.80"
 tower-http = { version = "0.4.4", features = ["auth"] }
 base64 = "0.21.6"
+base58 = "0.2.0"
 bincode = "1.3.3"
 crossbeam = "0.8.2"
 dashmap = "5.5.3"
@@ -44,6 +45,9 @@ futures-channel = "0.3.30"
 futures-sink = "0.3.30"
 rand = "0.8.5"
 indexmap = "2.2.5"
+
+[features]
+test-utils = []
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = "0.5"

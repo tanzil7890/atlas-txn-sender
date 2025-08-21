@@ -94,8 +94,13 @@ impl GrpcGeyserImpl {
                             Some(UpdateOneof::Block(block)) => {
                                 let block_time = block.block_time.unwrap().timestamp;
                                 for transaction in block.transactions {
-                                    let signature =
-                                        Signature::new(&transaction.signature).to_string();
+                                    let signature = if transaction.signature.len() == 64 {
+                                        let mut sig_bytes = [0u8; 64];
+                                        sig_bytes.copy_from_slice(&transaction.signature);
+                                        Signature::from(sig_bytes).to_string()
+                                    } else {
+                                        continue; // Skip invalid signatures
+                                    };
                                     signature_cache.insert(signature, (block_time, Instant::now()));
                                 }
                             }

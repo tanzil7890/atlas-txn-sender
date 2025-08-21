@@ -52,7 +52,8 @@ impl TransactionStore for TransactionStoreImpl {
         } else {
             error!("Transaction has no signatures");
         }
-        statsd_time!("add_signature_time", start.elapsed());
+        // #[cfg(not(test))]
+        // statsd_time!("add_signature_time", start.elapsed());
     }
     fn get_signatures(&self) -> Vec<String> {
         let start = Instant::now();
@@ -61,13 +62,15 @@ impl TransactionStore for TransactionStoreImpl {
             .iter()
             .map(|t| get_signature(&t).unwrap())
             .collect();
-        statsd_time!("get_signatures_time", start.elapsed());
+        // #[cfg(not(test))]
+        // statsd_time!("get_signatures_time", start.elapsed());
         signatures
     }
     fn remove_transaction(&self, signature: String) -> Option<TransactionData> {
         let start = Instant::now();
         let transaction = self.transactions.remove(&signature);
-        statsd_time!("remove_signature_time", start.elapsed());
+        // #[cfg(not(test))]
+        // statsd_time!("remove_signature_time", start.elapsed());
         transaction.map_or(None, |t| Some(t.1))
     }
     fn get_transactions(&self) -> Arc<DashMap<String, TransactionData>> {

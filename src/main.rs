@@ -1,3 +1,4 @@
+mod blockhash_manager;
 mod errors;
 mod grpc_geyser;
 mod leader_tracker;
@@ -13,6 +14,7 @@ use std::{
     sync::Arc,
 };
 
+use blockhash_manager::BlockhashManager;
 use cadence::{BufferedUdpMetricSink, QueuingMetricSink, StatsdClient};
 use cadence_macros::set_global_default;
 use figment::{providers::Env, Figment};
@@ -108,6 +110,7 @@ async fn main() -> anyhow::Result<()> {
         env.x_token.clone(),
     ));
     let rpc_client = Arc::new(RpcClient::new(env.rpc_url.unwrap()));
+    let blockhash_manager = Arc::new(BlockhashManager::new(rpc_client.clone()));
     let num_leaders = env.num_leaders.unwrap_or(2);
     let leader_offset = env.leader_offset.unwrap_or(0);
     let leader_tracker = Arc::new(LeaderTrackerImpl::new(
@@ -127,8 +130,12 @@ async fn main() -> anyhow::Result<()> {
         env.max_retry_queue_size,
     ));
     let max_txn_send_retries = env.max_txn_send_retries.unwrap_or(5);
-    let atlas_txn_sender =
-        AtlasTxnSenderImpl::new(txn_sender, transaction_store, max_txn_send_retries);
+    let atlas_txn_sender = AtlasTxnSenderImpl::new(
+        txn_sender, 
+        transaction_store, 
+        max_txn_send_retries,
+        blockhash_manager,
+    );
     let handle = server.start(atlas_txn_sender.into_rpc());
     handle.stopped().await;
     Ok(())
